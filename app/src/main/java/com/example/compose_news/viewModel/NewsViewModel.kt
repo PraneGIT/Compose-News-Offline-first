@@ -33,7 +33,6 @@ class NewsViewModel @Inject constructor(
       fun fetchTopHeadlines() {
         viewModelScope.launch {
             if(networkUtil.isNetworkAvailable()){
-//                75bce8f0756b40a59b27d0ba8b2a5a0f
                 try {
                     val response = newsApiService.getTopHeadlines(apiKey = System.getenv("News_API_key"))
                     _allNews.value = response.articles
