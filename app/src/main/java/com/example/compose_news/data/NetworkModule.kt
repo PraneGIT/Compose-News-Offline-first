@@ -1,8 +1,11 @@
 package com.example.compose_news.data
 
+import android.content.Context
+import com.example.compose_news.utils.NetworkUtil
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -26,4 +29,11 @@ object NetworkModule {
     fun provideNewsApiService(retrofit: Retrofit): NewsApiService {
         return retrofit.create(NewsApiService::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideNetworkHelper(@ApplicationContext context: Context): NetworkUtil {
+        return NetworkUtil(context)
+    }
+
 }
