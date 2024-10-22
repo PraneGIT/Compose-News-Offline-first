@@ -18,18 +18,39 @@ import com.example.compose_news.Models.Article
 import kotlinx.coroutines.launch
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.ui.platform.LocalContext
-
-
+import com.example.compose_news.utils.NetworkUtil
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun NewsScreen(
     newsViewModel: NewsViewModel = hiltViewModel()
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    // Material3's ModalBottomSheetState
     val bottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     var selectedArticle by remember { mutableStateOf<Article?>(null) }
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+
+    // LaunchedEffect to show Snackbar and handle retry
+    LaunchedEffect(key1 = Unit) {
+        while (true) {
+            // If no internet, show the snackbar
+            if (!newsViewModel.networkUtil.isNetworkAvailable()) {
+                val result = snackbarHostState.showSnackbar(
+                    message = "No Internet Connection",
+                    actionLabel = "Retry"
+                )
+
+                // Retry action clicked
+                if (result == SnackbarResult.ActionPerformed) {
+                    // Try to fetch headlines again
+                    newsViewModel.fetchTopHeadlines()
+                }
+            } else {
+                break // If network is available, exit the loop
+            }
+        }
+    }
 
     ModalBottomSheetLayout(
         sheetState = bottomSheetState,
@@ -42,17 +63,15 @@ fun NewsScreen(
                         topEnd = 16.dp
                     ), // curved corners
                 ) {
-                NewsDetailsBottomSheet(
-                    article = article,
-                    bottomSheetState = bottomSheetState,
-
-                    onCloseSheet = {
-                        // Close the bottom sheet
-                        scope.launch {
-                            bottomSheetState.hide()
+                    NewsDetailsBottomSheet(
+                        article = article,
+                        bottomSheetState = bottomSheetState,
+                        onCloseSheet = {
+                            scope.launch {
+                                bottomSheetState.hide()
+                            }
                         }
-                    }
-                )
+                    )
                 }
             }
         }
@@ -75,7 +94,7 @@ fun NewsScreen(
                         searchQuery = it
                         newsViewModel.filterNews(it)
                     },
-                    label = { Text("Search News Locally") },
+                    label = { Text("Search News") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = TextFieldDefaults.textFieldColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -91,6 +110,9 @@ fun NewsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Snackbar Host
+            SnackbarHost(hostState = snackbarHostState)
+
             // News List
             NewsList(
                 news = newsViewModel.filteredNews.value,
@@ -101,6 +123,9 @@ fun NewsScreen(
                     }
                 }
             )
+
         }
     }
 }
+
+

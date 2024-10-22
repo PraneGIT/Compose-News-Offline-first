@@ -17,7 +17,7 @@ import javax.inject.Inject
 class NewsViewModel @Inject constructor(
     private val newsApiService: NewsApiService,
     private val articleDao: ArticleDao,
-    private val networkUtil: NetworkUtil
+    val networkUtil: NetworkUtil
 ) : ViewModel() {
 
     private val _allNews = mutableStateOf<List<Article>>(emptyList())
@@ -30,7 +30,7 @@ class NewsViewModel @Inject constructor(
         fetchTopHeadlines()
     }
 
-     private fun fetchTopHeadlines() {
+      fun fetchTopHeadlines() {
         viewModelScope.launch {
             if(networkUtil.isNetworkAvailable()){
                 try {
